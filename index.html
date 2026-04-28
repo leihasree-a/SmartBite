@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBite AI | Kitchen Forecast</title>
+    <style>
+        :root {
+            --accent: #ffb100; /* Honey/Syrup Gold */
+            --glass: rgba(0, 0, 0, 0.75); /* Deep contrast for the pancake bg */
+            --border: rgba(255, 255, 255, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Professional Pancake Background */
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                        url('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=2000&h=1200&blur=4');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        h2 { color: white; margin-bottom: 5px; font-weight: 700; letter-spacing: -0.5px; }
+        p.subtitle { color: var(--accent); font-size: 0.8rem; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+
+        .input-group { text-align: left; margin-bottom: 18px; }
+        label { color: rgba(255,255,255,0.8); font-size: 0.75rem; margin-bottom: 6px; display: block; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        select option { background: #111; color: white; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #fff; transform: translateY(-2px); }
+
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+            display: none;
+            border-left: 4px solid var(--accent);
+            text-align: left;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>SmartBite AI</h2>
+        <p class="subtitle">Kitchen Demand Forecast</p>
+        
+        <div class="input-group">
+            <label>Baseline Servings</label>
+            <input type="number" id="baseQty" value="100">
+        </div>
+
+        <div class="input-group">
+            <label>Occasion Type</label>
+            <select id="dayType">
+                <option value="Normal Operations">Standard Weekday</option>
+                <option value="Peak Demand">Weekend (+30%)</option>
+                <option value="Max Capacity">Festival/Holiday (+50%)</option>
+            </select>
+        </div>
+
+        <button onclick="getForecast()" id="btnText">Generate AI Analysis</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function getForecast() {
+            // --- PASTE YOUR API KEY HERE ---
+            const apiKey = 'AIzaSyDPf4ZiwqSoVT2zfuSifk8X9sOOUOsl3Zc'; 
+            
+            const day = document.getElementById('dayType').value;
+            const base = document.getElementById('baseQty').value;
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('btnText');
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = "<i>AI analyzing kitchen patterns...</i>";
+            btn.innerText = "Analyzing...";
+
+            // Stable 2026 Endpoint
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const requestBody = {
+                contents: [{
+                    parts: [{
+                        text: `Professional Kitchen Analysis. Condition: ${day}, Base: ${base} servings. Provide: 1. Adjusted total count. 2. A pro chef tip to reduce waste. Keep it professional.`
+                    }]
+                }]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                let text = data.candidates[0].content.parts[0].text;
+
+                // --- CLEAN UP MARKDOWN SYMBOLS ---
+                text = text.replace(/\*\*/g, ""); // Remove bold stars
+                text = text.replace(/\*/g, "•");   // Change stars to clean bullets
+                text = text.replace(/#/g, "");    // Remove hashtags
+                text = text.replace(/\n/g, '<br>'); // Convert newlines to breaks
+
+                resultDiv.innerHTML = `<strong>Forecast Ready:</strong><br><br>${text}`;
+            } catch (error) {
+                resultDiv.innerHTML = "<strong>System Error:</strong> " + error.message;
+            } finally {
+                btn.innerText = "Generate AI Analysis";
+            }
+        }
+    </script>
+</body>
+</html>
