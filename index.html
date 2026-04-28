@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBite AI | Kitchen Forecast</title>
+    
+    <script src="config.js"></script>
+
     <style>
         :root {
-            --accent: #ffb100; /* Honey/Syrup Gold */
-            --glass: rgba(0, 0, 0, 0.75); /* Deep contrast for the pancake bg */
+            --accent: #ffb100;
+            --glass: rgba(0, 0, 0, 0.75);
             --border: rgba(255, 255, 255, 0.2);
         }
 
@@ -18,7 +21,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Professional Pancake Background */
             background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
                         url('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=2000&h=1200&blur=4');
             background-size: cover;
@@ -119,8 +121,8 @@
 
     <script>
         async function getForecast() {
-            // --- PASTE YOUR API KEY HERE ---
-            const apiKey = 'AIzaSyDPf4ZiwqSoVT2zfuSifk8X9sOOUOsl3Zc'; 
+            // Uses the variable loaded from config.js
+            const key = API_KEY; 
             
             const day = document.getElementById('dayType').value;
             const base = document.getElementById('baseQty').value;
@@ -131,8 +133,7 @@
             resultDiv.innerHTML = "<i>AI analyzing kitchen patterns...</i>";
             btn.innerText = "Analyzing...";
 
-            // Stable 2026 Endpoint
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`;
 
             const requestBody = {
                 contents: [{
@@ -154,11 +155,11 @@
 
                 let text = data.candidates[0].content.parts[0].text;
 
-                // --- CLEAN UP MARKDOWN SYMBOLS ---
-                text = text.replace(/\*\*/g, ""); // Remove bold stars
-                text = text.replace(/\*/g, "•");   // Change stars to clean bullets
-                text = text.replace(/#/g, "");    // Remove hashtags
-                text = text.replace(/\n/g, '<br>'); // Convert newlines to breaks
+                // Clean up Markdown
+                text = text.replace(/\*\*/g, ""); 
+                text = text.replace(/\*/g, "•");   
+                text = text.replace(/#/g, "");    
+                text = text.replace(/\n/g, '<br>'); 
 
                 resultDiv.innerHTML = `<strong>Forecast Ready:</strong><br><br>${text}`;
             } catch (error) {
